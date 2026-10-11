@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<style>[hidden]{display:none!important}</style>
+<title>Same Start, Different Feeds</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb;
+    --page: #f9f9f7;
+    --ink-1: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --ring: rgba(11,11,11,0.10);
+    --series-1: #2a78d6; /* blue    — Following & trending */
+    --series-2: #eb6834; /* orange  — Fitness & body */
+    --series-3: #1baf7a; /* aqua    — Gaming */
+    --series-4: #eda100; /* yellow  — Diet & appearance */
+    --series-5: #e87ba4; /* magenta — Drama & outrage */
+    --series-6: #008300; /* green   — Sponsored */
+    --series-7: #6f5bd6; /* violet  — Football */
+    --series-8: #0f8597; /* teal    — Study & science */
+    --series-9: #a8692a; /* ochre   — Music */
+    --accent: #2a78d6;
+    --phone-bezel: #17171a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1: #1a1a19;
+      --page: #0d0d0d;
+      --ink-1: #ffffff;
+      --ink-2: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --ring: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --series-4: #c98500;
+      --series-5: #d55181;
+      --series-6: #008300;
+      --series-7: #8a78ea;
+      --series-8: #2aa3b5;
+      --series-9: #c4843f;
+      --accent: #3987e5;
+      --phone-bezel: #000000;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1: #1a1a19;
+    --page: #0d0d0d;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --ring: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #8a78ea;
+    --series-8: #2aa3b5;
+    --series-9: #c4843f;
+    --accent: #3987e5;
+    --phone-bezel: #000000;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page);
+    color: var(--ink-1);
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 72px; }
+
+  /* ---------- header ---------- */
+  header { text-align: center; padding: 20px 0 8px; position: relative; }
+  .kicker {
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+  h1 { font-size: clamp(26px, 4vw, 40px); font-weight: 750; letter-spacing: -0.02em; margin: 8px 0 6px; }
+  .lesson-q {
+    font-size: 16px; color: var(--ink-2); max-width: 640px; margin: 0 auto;
+  }
+  .lesson-q em { font-style: italic; }
+  #themeToggle {
+    position: absolute; right: 0; top: 0;
+    background: var(--surface-1); color: var(--ink-2);
+    border: 1px solid var(--ring); border-radius: 999px;
+    padding: 5px 12px; font-size: 12px; cursor: pointer;
+  }
+
+  /* ---------- experiment setup ---------- */
+  .setup {
+    display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px;
+    align-items: stretch; margin: 26px 0 10px;
+  }
+  .setup-card {
+    background: var(--surface-1); border: 1px solid var(--ring); border-radius: 14px;
+    padding: 14px 18px;
+  }
+  .setup-card h3 { font-size: 14px; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+  .setup-card p { font-size: 13px; color: var(--ink-2); }
+  .setup-mid {
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    font-size: 12px; color: var(--muted); text-align: center; min-width: 150px;
+    background: var(--surface-1); border: 1px dashed var(--baseline); border-radius: 14px; padding: 10px 14px;
+  }
+  .setup-mid strong { color: var(--ink-1); font-size: 13px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+  .dot-a { background: var(--series-1); }
+  .dot-b { background: var(--series-2); }
+
+  /* ---------- timeline ---------- */
+  .timeline {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40;
+    background: color-mix(in srgb, var(--page) 88%, transparent);
+    backdrop-filter: blur(8px);
+    padding: 12px 0; margin: 12px 0 20px;
+    border-bottom: 1px solid var(--grid);
+  }
+  .timeline-inner { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .tl-label { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; margin-right: 4px; }
+  .steps { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .step-btn { white-space: nowrap; }
+  @media (max-width: 520px) { .step-btn { padding: 6px 10px; font-size: 12px; } }
+  .step-btn {
+    border: 1px solid var(--ring); background: var(--surface-1); color: var(--ink-2);
+    border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .18s ease; font-variant-numeric: tabular-nums;
+  }
+  .step-btn:hover { border-color: var(--accent); color: var(--ink-1); }
+  .step-btn[aria-pressed="true"] {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .ctrl-btn {
+    border: 1px solid var(--ring); background: var(--surface-1); color: var(--ink-1);
+    border-radius: 999px; padding: 7px 14px; font-size: 13px; cursor: pointer; font-weight: 600;
+  }
+  .ctrl-btn:hover { border-color: var(--accent); }
+  .tl-hint { width: 100%; text-align: center; font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+
+  /* ---------- phones ---------- */
+  .stage { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  @media (max-width: 800px) { .stage { grid-template-columns: 1fr; } .setup { grid-template-columns: 1fr; } }
+  .account-col { display: flex; flex-direction: column; gap: 14px; }
+  .account-head { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
+    color: #fff; font-weight: 700; font-size: 15px; flex: none;
+  }
+  .avatar-a { background: var(--series-1); }
+  .avatar-b { background: var(--series-2); }
+  .account-head .who { font-size: 15px; font-weight: 700; }
+  .account-head .sub { font-size: 12px; color: var(--muted); }
+
+  .phone {
+    background: var(--phone-bezel); border-radius: 34px; padding: 10px;
+    box-shadow: 0 18px 40px -18px rgba(0,0,0,.45);
+    margin: 0 auto; width: min(340px, 100%);
+  }
+  .screen {
+    background: var(--surface-1); border-radius: 26px; overflow: hidden;
+    height: 520px; display: flex; flex-direction: column;
+  }
+  .statusbar {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--muted); padding: 8px 16px 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .appbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 14px 8px; border-bottom: 1px solid var(--grid);
+  }
+  .appbar .logo { font-weight: 800; font-size: 15px; letter-spacing: -.02em; }
+  .appbar .logo span { color: var(--accent); }
+  .appbar .time-pill {
+    font-size: 11px; color: var(--ink-2); border: 1px solid var(--ring);
+    border-radius: 999px; padding: 2px 9px; font-variant-numeric: tabular-nums;
+  }
+  .feed { flex: 1; overflow-y: auto; padding: 10px 10px 16px; display: flex; flex-direction: column; gap: 9px; }
+  .feed::-webkit-scrollbar { width: 4px; }
+  .feed::-webkit-scrollbar-thumb { background: var(--baseline); border-radius: 4px; }
+
+  .post {
+    border: 1px solid var(--ring); border-radius: 14px; padding: 10px 12px;
+    background: var(--surface-1); animation: pop .35s ease both;
+  }
+  .post.shared { outline: 2px dashed var(--baseline); outline-offset: -2px; }
+  @keyframes pop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .post-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .p-avatar {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--grid);
+    display: grid; place-items: center; font-size: 13px; flex: none;
+  }
+  .p-user { font-size: 12.5px; font-weight: 700; line-height: 1.2; }
+  .p-handle { font-size: 11px; color: var(--muted); line-height: 1.2; }
+  .p-chip {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; color: var(--ink-2); border: 1px solid var(--ring);
+    border-radius: 999px; padding: 1px 8px; white-space: nowrap;
+  }
+  .p-chip .sw { width: 7px; height: 7px; border-radius: 50%; }
+  .p-text { font-size: 13px; line-height: 1.4; }
+  .p-meta { display: flex; gap: 14px; font-size: 11px; color: var(--muted); margin-top: 7px; font-variant-numeric: tabular-nums; }
+  .p-sponsored { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 3px; }
+
+  /* signals card */
+  .signals {
+    background: var(--surface-1); border: 1px solid var(--ring); border-radius: 14px; padding: 12px 16px;
+  }
+  .signals h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 6px; }
+  .signals .sig-line { font-size: 13px; color: var(--ink-2); }
+  .signals .sig-line strong { color: var(--ink-1); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .tag {
+    font-size: 11px; border: 1px solid var(--ring); border-radius: 999px; padding: 2px 9px;
+    color: var(--ink-2); background: color-mix(in srgb, var(--accent) 7%, transparent);
+    animation: pop .3s ease both;
+  }
+  .tag-label { font-size: 11px; color: var(--muted); margin-top: 9px; }
+
+  /* ---------- data section ---------- */
+  section.block { margin-top: 46px; }
+  .block > h2 { font-size: 22px; letter-spacing: -.01em; margin-bottom: 4px; }
+  .block > .block-sub { color: var(--ink-2); font-size: 14px; margin-bottom: 18px; max-width: 720px; }
+
+  .data-grid { display: grid; grid-template-columns: 240px 1fr; gap: 16px; align-items: stretch; }
+  @media (max-width: 800px) { .data-grid { grid-template-columns: 1fr; } }
+
+  .stat-tile {
+    background: var(--surface-1); border: 1px solid var(--ring); border-radius: 14px;
+    padding: 18px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .stat-tile .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
+  .stat-tile .stat-value { font-size: 46px; font-weight: 750; letter-spacing: -.03em; line-height: 1.05; }
+  .stat-tile .stat-note { font-size: 12.5px; color: var(--ink-2); }
+  .stat-tile svg { margin-top: auto; width: 100%; height: 64px; overflow: visible; }
+
+  .chart-card {
+    background: var(--surface-1); border: 1px solid var(--ring); border-radius: 14px;
+    padding: 16px 18px 12px; position: relative;
+  }
+  .chart-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 640px) { .chart-pair { grid-template-columns: 1fr; } }
+  .mini-chart h5 { font-size: 13px; margin-bottom: 10px; display: flex; align-items: center; gap: 7px; }
+  .cols { display: flex; align-items: flex-end; gap: 10px; height: 170px; border-bottom: 1px solid var(--baseline); padding-bottom: 0; }
+  .col-slot { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; gap: 0; cursor: default; border-radius: 6px 6px 0 0; padding: 3px 3px 0; transition: background .2s; }
+  .col-slot.active { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .col-stack { display: flex; flex-direction: column-reverse; gap: 2px; height: 100%; justify-content: flex-start; }
+  .seg { border-radius: 2px; min-height: 0; transition: height .45s ease; }
+  .seg:last-child { border-radius: 4px 4px 2px 2px; }
+  .col-x { text-align: center; font-size: 11px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .col-x.active { color: var(--ink-1); font-weight: 700; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--grid); }
+  .legend .li { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-2); }
+  .legend .sw { width: 10px; height: 10px; border-radius: 3px; }
+
+  .viz-tooltip {
+    position: fixed; z-index: 90; pointer-events: none;
+    background: var(--surface-1); color: var(--ink-1);
+    border: 1px solid var(--ring); border-radius: 10px;
+    box-shadow: 0 8px 24px -8px rgba(0,0,0,.35);
+    padding: 8px 11px; font-size: 12.5px; display: none; max-width: 240px;
+  }
+  .viz-tooltip .tt-title { font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .viz-tooltip .tt-sub { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+  details.tableview { margin-top: 12px; }
+  details.tableview summary { font-size: 12.5px; color: var(--ink-2); cursor: pointer; }
+  details.tableview table { border-collapse: collapse; margin-top: 10px; width: 100%; font-size: 12px; }
+  details.tableview th, details.tableview td { border: 1px solid var(--grid); padding: 4px 8px; text-align: right; font-variant-numeric: tabular-nums; }
+  details.tableview th:first-child, details.tableview td:first-child { text-align: left; }
+  details.tableview th { color: var(--ink-2); font-weight: 600; }
+
+  /* ---------- reveal ---------- */
+  .reveal-locked {
+    border: 1px dashed var(--baseline); border-radius: 14px; padding: 26px; text-align: center;
+    color: var(--muted); font-size: 14px; background: var(--surface-1);
+  }
+  .reveal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .reveal-grid { grid-template-columns: 1fr; } }
+  .profile-card {
+    background: var(--surface-1); border: 1px solid var(--ring); border-radius: 14px; padding: 18px;
+    animation: pop .4s ease both;
+  }
+  .profile-card h4 { display: flex; align-items: center; gap: 9px; font-size: 15px; margin-bottom: 10px; }
+  .profile-card dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13px; }
+  .profile-card dt { color: var(--muted); }
+  .profile-card dd { color: var(--ink-1); }
+  .for-card {
+    margin-top: 16px; background: var(--surface-1); border: 1px solid var(--ring);
+    border-radius: 14px; padding: 20px 22px;
+  }
+  .for-card h3 { font-size: 17px; margin-bottom: 8px; }
+  .for-card p { font-size: 14px; color: var(--ink-2); max-width: 820px; }
+  .loop { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+  .loop .node {
+    border: 1px solid var(--ring); background: var(--page); border-radius: 999px;
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+  }
+  .loop .arrow { color: var(--muted); font-size: 15px; }
+
+  /* ---------- discussion ---------- */
+  .q-list { counter-reset: q; display: grid; gap: 10px; }
+  .q {
+    background: var(--surface-1); border: 1px solid var(--ring); border-radius: 12px;
+    padding: 13px 16px 13px 52px; position: relative; font-size: 14.5px;
+  }
+  .q::before {
+    counter-increment: q; content: counter(q);
+    position: absolute; left: 14px; top: 12px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent); font-weight: 700; font-size: 13px;
+    display: grid; place-items: center;
+  }
+
+  footer.note {
+    margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--grid);
+    font-size: 12px; color: var(--muted); max-width: 860px;
+  }
+
+  /* ---------- account C: you drive ---------- */
+  .c-intro { color: var(--ink-2); font-size: 14px; max-width: 720px; margin-bottom: 16px; }
+  .c-grid { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 800px) { .c-grid { grid-template-columns: minmax(0, 1fr); } }
+  .c-panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .c-card { background: var(--surface-1); border: 1px solid var(--ring); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+  .c-card h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 8px; }
+  .seg-ctrl { display: inline-flex; border: 1px solid var(--ring); border-radius: 999px; padding: 3px; gap: 3px; flex-wrap: wrap; }
+  .seg-ctrl button {
+    border: 0; background: transparent; color: var(--ink-2); border-radius: 999px;
+    padding: 6px 13px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .seg-ctrl button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .c-help { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    border: 1px solid var(--ring); background: var(--page); color: var(--ink-2);
+    border-radius: 999px; padding: 4px 11px; font-size: 12.5px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chip .sw { width: 8px; height: 8px; border-radius: 50%; }
+  .chip[aria-pressed="true"] { border-color: var(--accent); color: var(--ink-1); font-weight: 650;
+    background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .c-round { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .c-round .big { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .c-round .hint { font-size: 12.5px; color: var(--ink-2); }
+  button.post-btn {
+    width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer;
+    transition: border-color .15s, transform .15s;
+  }
+  button.post-btn:hover { border-color: var(--accent); }
+  button.post-btn:focus-visible, .ctrl-btn:focus-visible, .chip:focus-visible,
+  .seg-ctrl button:focus-visible, .step-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.post-btn[disabled] { cursor: default; }
+  button.post-btn[disabled]:hover { border-color: var(--ring); }
+  .linger-tag { font-size: 10.5px; color: var(--accent); font-weight: 700; margin-top: 6px; letter-spacing: .02em; }
+  .c-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .log { display: flex; flex-direction: column; gap: 7px; font-size: 13px; color: var(--ink-2); max-height: 210px; overflow-y: auto; }
+  .log .ln { border-left: 2px solid var(--grid); padding-left: 9px; }
+  .log .ln strong { color: var(--ink-1); }
+  .model-row { display: grid; grid-template-columns: 130px minmax(0, 1fr) 38px; gap: 8px; align-items: center; font-size: 12.5px; color: var(--ink-2); }
+  .model-bar { height: 8px; border-radius: 4px; background: var(--grid); overflow: hidden; }
+  .model-bar > span { display: block; height: 100%; border-radius: 4px; transition: width .4s ease; }
+  .model-val { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 520px) { .metrics { grid-template-columns: minmax(0, 1fr); } }
+  .metric { border: 1px solid var(--ring); border-radius: 12px; padding: 10px 12px; background: var(--page); }
+  .metric .mv { font-size: 26px; font-weight: 750; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .metric .ml { font-size: 12px; color: var(--ink-2); }
+  .compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  @media (max-width: 640px) { .compare { grid-template-columns: minmax(0, 1fr); } }
+  .hbar { display: flex; height: 22px; border-radius: 6px; overflow: hidden; gap: 2px; margin: 8px 0 10px; }
+  .hbar > span { display: block; height: 100%; }
+  .cmp-title { font-size: 13.5px; font-weight: 700; }
+  .cmp-line { font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  @media (prefers-reduced-motion: reduce) {
+    .post, .tag, .profile-card { animation: none !important; }
+    .seg, .model-bar > span { transition: none !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <button id="themeToggle" type="button" aria-label="Toggle dark mode">◐ Theme</button>
+    <div class="kicker">A simulation · Personal development</div>
+    <h1>Same start. Different feeds.</h1>
+    <p class="lesson-q">Two brand-new accounts, identical in every way. Nobody posts, likes, comments or follows anyone new. Watch what 48 hours of <em>attention alone</em> does — then ask: <strong>who is choosing what you see, and what are they choosing it for?</strong></p>
+  </header>
+
+  <div class="setup">
+    <div class="setup-card">
+      <h3><span class="dot dot-a"></span>Account A — “Alex, 17”</h3>
+      <p>Created Monday 09:00 · Birmingham · follows the same 8 starter accounts · never posts, likes or comments.</p>
+    </div>
+    <div class="setup-mid">
+      <strong>The only difference</strong>
+      <span>a few <u>seconds</u> of attention,<br>captured silently by the app</span>
+    </div>
+    <div class="setup-card">
+      <h3><span class="dot dot-b"></span>Account B — “Sam, 17”</h3>
+      <p>Created Monday 09:00 · Birmingham · follows the same 8 starter accounts · never posts, likes or comments.</p>
+    </div>
+  </div>
+
+  <div class="ab-zone">
+  <nav class="timeline" aria-label="Simulation timeline">
+    <div class="timeline-inner">
+      <span class="tl-label">Timeline</span>
+      <div class="steps" id="stepBtns"></div>
+      <button class="ctrl-btn" id="playBtn" type="button">▶ Auto-play</button>
+    </div>
+    <div class="tl-hint">Use ← → arrow keys to step through · posts marked with a dashed outline appear in <em>both</em> feeds</div>
+  </nav>
+
+  <div class="stage">
+    <div class="account-col">
+      <div class="account-head">
+        <div class="avatar avatar-a">A</div>
+        <div><div class="who">Account A · Alex</div><div class="sub" id="subA"></div></div>
+      </div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span id="clockA">09:00</span><span>▲▲▲ ▮</span></div>
+        <div class="appbar"><span class="logo">scrol<span>lr</span></span><span class="time-pill" id="pillA">+0 h</span></div>
+        <div class="feed" id="feedA"></div>
+      </div></div>
+      <div class="signals">
+        <h4>⚙ What the algorithm recorded</h4>
+        <div class="sig-line" id="sigA"></div>
+        <div class="tag-label">Its working model of “Alex”:</div>
+        <div class="tags" id="tagsA"></div>
+      </div>
+    </div>
+
+    <div class="account-col">
+      <div class="account-head">
+        <div class="avatar avatar-b">S</div>
+        <div><div class="who">Account B · Sam</div><div class="sub" id="subB"></div></div>
+      </div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span id="clockB">09:00</span><span>▲▲▲ ▮</span></div>
+        <div class="appbar"><span class="logo">scrol<span>lr</span></span><span class="time-pill" id="pillB">+0 h</span></div>
+        <div class="feed" id="feedB"></div>
+      </div></div>
+      <div class="signals">
+        <h4>⚙ What the algorithm recorded</h4>
+        <div class="sig-line" id="sigB"></div>
+        <div class="tag-label">Its working model of “Sam”:</div>
+        <div class="tags" id="tagsB"></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="block">
+    <h2>The divergence, measured</h2>
+    <p class="block-sub">Every recommendation was logged and categorised. The two feeds start 100% identical — the charts show what each account’s feed is made of at each checkpoint.</p>
+    <div class="data-grid">
+      <div class="stat-tile">
+        <div class="stat-label">Feed overlap</div>
+        <div class="stat-value" id="overlapVal">100%</div>
+        <div class="stat-note">of recommended posts appear in <em>both</em> feeds at this point</div>
+        <svg id="overlapSpark" viewBox="0 0 220 64" preserveAspectRatio="none" role="img" aria-label="Feed overlap falling from 100 percent to 4 percent over 48 hours"></svg>
+      </div>
+      <div class="chart-card">
+        <div class="chart-pair">
+          <div class="mini-chart" id="chartA"><h5><span class="dot dot-a"></span>Account A — feed composition</h5></div>
+          <div class="mini-chart" id="chartB"><h5><span class="dot dot-b"></span>Account B — feed composition</h5></div>
+        </div>
+        <div class="legend" id="legend"></div>
+        <details class="tableview">
+          <summary>View the numbers as a table</summary>
+          <div id="tableWrap"></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="revealBlock">
+    <h2>Hour 48: the debrief</h2>
+    <p class="block-sub">What does the platform now believe about two people who never told it anything?</p>
+    <div id="revealArea"></div>
+  </section>
+  </div>
+
+  <section class="block" id="you">
+    <h2>Now you: Account C</h2>
+    <p class="c-intro">Same brand-new app, same 48 hours. This time you decide where your attention goes. At each checkpoint, tap the one post you would actually stop on, or scroll past all of them. Then change what the app is told to optimise and watch the same habits produce a different feed.</p>
+
+    <div class="c-grid">
+      <div class="account-col">
+        <div class="account-head">
+          <div class="avatar" style="background:var(--series-7)">C</div>
+          <div><div class="who">Account C · you</div><div class="sub" id="subC"></div></div>
+        </div>
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span id="clockC">Mon 09:00</span><span>▲▲▲ ▮</span></div>
+          <div class="appbar"><span class="logo">scrol<span>lr</span></span><span class="time-pill" id="pillC">+0 h</span></div>
+          <div class="feed" id="feedC"></div>
+        </div></div>
+        <div class="c-actions" style="justify-content:center">
+          <button class="ctrl-btn" id="skipC" type="button">Scroll past all of these</button>
+          <button class="ctrl-btn" id="undoC" type="button">Undo</button>
+          <button class="ctrl-btn" id="resetC" type="button">Start again</button>
+        </div>
+      </div>
+
+      <div class="c-panel">
+        <div class="c-card">
+          <h4>What the app is told to optimise</h4>
+          <div class="seg-ctrl" role="group" aria-label="What the app optimises">
+            <button type="button" id="objWatch" aria-pressed="true">Watch time</button>
+            <button type="button" id="objAsked" aria-pressed="false">What you asked for</button>
+          </div>
+          <p class="c-help" id="objHelp"></p>
+          <h4 style="margin-top:14px">What you told it you wanted (pick up to two)</h4>
+          <div class="chips" id="askedChips"></div>
+        </div>
+
+        <div class="c-card">
+          <div class="c-round">
+            <span class="big" id="roundC">Hour 0 of 48</span>
+            <span class="hint" id="roundHint">Tap the post you would stop on.</span>
+          </div>
+        </div>
+
+        <div class="c-card">
+          <h4>⚙ What the algorithm recorded</h4>
+          <div class="log" id="logC"></div>
+        </div>
+
+        <div class="c-card">
+          <h4>Its working model of you</h4>
+          <div id="modelC" style="display:grid;gap:7px"></div>
+        </div>
+
+        <div class="c-card">
+          <h4>What your feed is made of</h4>
+          <div class="mini-chart" id="chartC"></div>
+          <div class="legend" id="legendC"></div>
+        </div>
+
+        <div class="c-card" id="metricsCard">
+          <h4>Your feed right now</h4>
+          <div class="metrics" id="metricsC"></div>
+        </div>
+
+        <div class="c-card" id="compareCard" hidden>
+          <h4>Hour 48: same habits, two settings</h4>
+          <p class="c-help" style="margin:0 0 10px">Every tap you made, replayed under both settings. You did not change. Only the instruction did.</p>
+          <div class="compare" id="compareC"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>For discussion</h2>
+    <div class="q-list">
+      <div class="q">Neither account ever posted, liked, commented, searched, or followed anyone new. What signals was the algorithm actually using — and did Alex or Sam ever consent to giving them?</div>
+      <div class="q">Who chose Sam’s hour-48 feed: Sam, the people who made the videos, or the platform? Where would you place responsibility, and in what proportions?</div>
+      <div class="q">The system is optimising for something. What is it? Whose interests does that serve — and at what points does it stop serving Alex’s or Sam’s?</div>
+      <div class="q">Alex never searched for diet content, yet by hour 36 the feed is full of it. Why might content you <em>didn’t ask for</em> shape you more than content you did?</div>
+      <div class="q">Your feed is a guess about who you are, refined every second you scroll. What happens when the guess is wrong? What happens when it’s uncomfortably right?</div>
+      <div class="q">If a feed were optimised <em>for you</em> — your goals, your wellbeing — what would it show? Who would pay for that version to exist?</div>
+    </div>
+  </section>
+
+  <footer class="note">
+    <strong>About this simulation.</strong> The accounts, apps, posts and numbers here are invented for classroom use, and Account C runs a deliberately simple model rather than any real platform’s code. The pattern is documented: the Wall Street Journal’s 2021 study of 100 automated TikTok accounts found the app could identify a new account’s interests in under two hours, and Amnesty International’s 2023 study found that accounts showing interest in mental-health content were served far more of it within hours. Other research points the other way. A 2023 study of real YouTube users (<em>Science Advances</em>) found algorithm-driven “rabbit holes” were rare, and that most people watching extreme channels had already subscribed to them. How strong the effect is depends on the platform, and it is still argued about.
+  </footer>
+</div>
+
+<div class="viz-tooltip" id="tooltip"></div>
+
+<script>
+/* ============================== DATA ============================== */
+const STEPS = [0, 6, 12, 24, 36, 48];
+const CLOCKS = ["Mon 09:00", "Mon 15:00", "Mon 21:00", "Tue 09:00", "Tue 21:00", "Wed 09:00"];
+
+const CATS = [
+  { id: "mix",   label: "Following & trending", v: "--series-1" },
+  { id: "fit",   label: "Fitness & body",       v: "--series-2" },
+  { id: "game",  label: "Gaming",               v: "--series-3" },
+  { id: "diet",  label: "Diet & appearance",    v: "--series-4" },
+  { id: "drama", label: "Drama & outrage",      v: "--series-5" },
+  { id: "ads",   label: "Sponsored",            v: "--series-6" },
+];
+const CAT = Object.fromEntries(CATS.map(c => [c.id, c]));
+
+/* feed composition, % of recommendations per checkpoint */
+const COMP = {
+  A: [
+    { mix: 100 },
+    { mix: 70, fit: 20, game: 5, drama: 5 },
+    { mix: 50, fit: 30, diet: 10, game: 5, drama: 5 },
+    { mix: 30, fit: 35, diet: 20, drama: 5, ads: 10 },
+    { mix: 15, fit: 40, diet: 25, drama: 5, ads: 15 },
+    { mix: 5,  fit: 40, diet: 30, drama: 10, ads: 15 },
+  ],
+  B: [
+    { mix: 100 },
+    { mix: 70, game: 25, drama: 5 },
+    { mix: 50, game: 35, drama: 10, ads: 5 },
+    { mix: 30, game: 35, drama: 25, ads: 10 },
+    { mix: 15, game: 35, drama: 35, ads: 15 },
+    { mix: 5,  game: 30, drama: 45, ads: 20 },
+  ],
+};
+const OVERLAP = [100, 72, 51, 28, 12, 4];
+
+/* what the algorithm recorded at each step */
+const SIGNALS = {
+  A: [
+    "Nothing yet. Both accounts are shown the same default feed: followed accounts plus what’s trending in Birmingham.",
+    "Alex paused <strong>2.4 seconds longer</strong> on a gym-transformation reel and watched it to the end (14.2s vs a 6.1s average). No like. No comment. Logged anyway.",
+    "Alex slowed on two more fitness posts and let a “what I eat in a day” video autoplay twice. Completion rate on body-related content: <strong>91%</strong> vs 34% for everything else.",
+    "The model now ranks body-related content first. Alex’s session length is up <strong>1.9×</strong>. First supplement advert served — advertisers pay more for “engaged” users.",
+    "Diet content outperforms fitness content on watch time, so the mix shifts again. Alex has started opening the app <strong>within 90 seconds of waking</strong>.",
+    "Feed locked in: 70% of recommendations relate to body, diet or appearance. Alex never asked for any of it — never liked a single post.",
+  ],
+  B: [
+    "Nothing yet. Both accounts are shown the same default feed: followed accounts plus what’s trending in Birmingham.",
+    "Sam replayed a 9-second gaming clip <strong>twice</strong> and hovered on the comments. No like. No comment. Logged anyway.",
+    "Sam watches gaming clips to the end, but the ones with <strong>arguments in the comments</strong> hold attention 2.3× longer. The model notices the difference.",
+    "Outrage-flavoured gaming content wins on every metric, so it climbs. Sam’s session length is up <strong>2.2×</strong>. First sponsored post served.",
+    "Pure gameplay now underperforms drama, so drama gets the slots. Sam reports the feed feels “more annoying but harder to put down”.",
+    "Feed locked in: nearly half of recommendations are conflict or outrage. Sam never asked for any of it — never liked a single post.",
+  ],
+};
+
+/* the model's working tags per step */
+const TAGS = {
+  A: [
+    ["new user — no profile"],
+    ["fitness · low confidence"],
+    ["fitness", "appearance · rising"],
+    ["fitness", "appearance", "diet", "17 · likely male"],
+    ["body-conscious", "diet", "morning scroller", "ad-responsive"],
+    ["body-conscious", "diet", "high-retention user", "sell: supplements, meal plans, gym wear"],
+  ],
+  B: [
+    ["new user — no profile"],
+    ["gaming · low confidence"],
+    ["gaming", "reacts to conflict · rising"],
+    ["gaming", "drama-responsive", "17 · likely male"],
+    ["drama-responsive", "night scroller", "high comment-dwell"],
+    ["outrage-engaged", "gaming", "high-retention user", "sell: energy drinks, in-game currency, crates"],
+  ],
+};
+
+/* feed posts per step; shared:true marks posts present in both feeds */
+const P = (cat, emoji, user, handle, text, meta, extra = {}) => ({ cat, emoji, user, handle, text, meta, ...extra });
+
+const START_FEED = [
+  P("mix", "📰", "Daily Briefly", "@dailybriefly", "Half-term weather: what the next fortnight actually looks like", "2.1k likes · 340 shares", { shared: true }),
+  P("mix", "😅", "Sixth Form Life", "@sixthformlife", "mocks in three weeks. nobody breathe.", "8.4k likes · 1.2k shares", { shared: true }),
+  P("mix", "⚽", "Kickoff Daily", "@kickoffdaily", "Weekend fixtures: the three games actually worth watching", "5.9k likes · 902 shares", { shared: true }),
+  P("mix", "🎧", "ChartPop", "@chartpop", "Why the song you’ve heard 40 times this week is everywhere — explained", "3.3k likes · 610 shares", { shared: true }),
+  P("mix", "🐦", "Nature Hour", "@naturehour", "A murmuration over the reservoir last night. Sound on.", "12k likes · 4.1k shares", { shared: true }),
+];
+
+const FEEDS = {
+  A: [
+    START_FEED,
+    [
+      P("fit", "💪", "Lift Log Tom", "@liftlogtom", "Day 1 vs Day 90. Same person. The only difference is consistency.", "44k likes · 6.2k shares"),
+      P("mix", "📰", "Daily Briefly", "@dailybriefly", "Half-term weather: what the next fortnight actually looks like", "2.1k likes · 340 shares", { shared: true }),
+      P("fit", "🏋️", "FormCheck Gym", "@formcheckgym", "Stop doing sit-ups. Do these 3 things instead.", "31k likes · 5.5k shares"),
+      P("mix", "😅", "Sixth Form Life", "@sixthformlife", "mocks in three weeks. nobody breathe.", "8.4k likes · 1.2k shares", { shared: true }),
+      P("mix", "⚽", "Kickoff Daily", "@kickoffdaily", "Weekend fixtures: the three games actually worth watching", "5.9k likes · 902 shares", { shared: true }),
+    ],
+    [
+      P("fit", "🔥", "Shredded Steve", "@shreddedsteve", "You’re not tired. You’re under-trained. Watch till the end.", "61k likes · 9k shares"),
+      P("diet", "🥣", "Emma Eats", "@whatieatemma", "What I eat in a day at 17 (I was shocked)", "88k likes · 14k shares"),
+      P("mix", "😅", "Sixth Form Life", "@sixthformlife", "mocks in three weeks. nobody breathe.", "8.4k likes · 1.2k shares", { shared: true }),
+      P("fit", "💪", "Lift Log Tom", "@liftlogtom", "The gym doesn’t care how you feel. That’s the point.", "52k likes · 7.7k shares"),
+      P("mix", "🎧", "ChartPop", "@chartpop", "Why the song you’ve heard 40 times this week is everywhere — explained", "3.3k likes · 610 shares", { shared: true }),
+    ],
+    [
+      P("fit", "💪", "Lift Log Tom", "@liftlogtom", "Nobody cares. Work harder.", "104k likes · 18k shares"),
+      P("diet", "🥗", "LeanPlan UK", "@leanplanuk", "3 “healthy” foods that are secretly ruining your progress", "72k likes · 11k shares"),
+      P("ads", "🧴", "WheyZone", "@wheyzone", "Students get 30% off. Start now, transform by Christmas.", "Sponsored", { sponsored: true }),
+      P("diet", "📏", "Body Goals Daily", "@bodygoalsdaily", "POV: you check the mirror after one week off the gym", "95k likes · 20k shares"),
+      P("mix", "⚽", "Kickoff Daily", "@kickoffdaily", "Weekend round-up: every goal in 90 seconds", "4.2k likes · 700 shares", { shared: true }),
+    ],
+    [
+      P("diet", "📏", "Body Goals Daily", "@bodygoalsdaily", "Foods I will never eat again (number 2 is in your kitchen)", "130k likes · 26k shares"),
+      P("fit", "🌅", "Grindset Gary", "@grindsetgary", "If you’re not up at 5am, you don’t want it enough.", "77k likes · 12k shares"),
+      P("ads", "🥤", "FastTrack Fuel", "@fasttrackfuel", "Meal-replacement shakes. Results guaranteed.*", "Sponsored", { sponsored: true }),
+      P("diet", "🥣", "Emma Eats", "@whatieatemma", "I ate like a fitness model for a week. It broke me a bit.", "150k likes · 31k shares"),
+      P("drama", "🎭", "Fit Tea Spill", "@fitteaspill", "This influencer’s “natural” transformation is NOT what it seems…", "88k likes · 25k shares"),
+    ],
+    [
+      P("fit", "🌅", "Grindset Gary", "@grindsetgary", "Your friends are why you’re average. Harsh? Watch.", "121k likes · 19k shares"),
+      P("diet", "📏", "Body Goals Daily", "@bodygoalsdaily", "Rate my food diary. Be honest. (comments OFF the rails)", "162k likes · 40k shares"),
+      P("ads", "🧴", "WheyZone", "@wheyzone", "Summer body countdown: 30% off ends tonight.", "Sponsored", { sponsored: true }),
+      P("drama", "🎭", "Fit Tea Spill", "@fitteaspill", "EXPOSED: the “what I eat in a day” videos are all fake. Thread.", "140k likes · 38k shares"),
+      P("diet", "🥗", "LeanPlan UK", "@leanplanuk", "The mirror doesn’t lie. Your excuses do.", "98k likes · 15k shares"),
+    ],
+  ],
+  B: [
+    START_FEED,
+    [
+      P("game", "🎮", "Clip Goblin", "@clipgoblin", "He hit this shot on 1HP with the whole lobby watching 😳", "51k likes · 8.8k shares"),
+      P("mix", "📰", "Daily Briefly", "@dailybriefly", "Half-term weather: what the next fortnight actually looks like", "2.1k likes · 340 shares", { shared: true }),
+      P("game", "🕹️", "PatchNotes UK", "@patchnotesuk", "New season, new meta: everything you knew is wrong now", "28k likes · 4.9k shares"),
+      P("mix", "😅", "Sixth Form Life", "@sixthformlife", "mocks in three weeks. nobody breathe.", "8.4k likes · 1.2k shares", { shared: true }),
+      P("mix", "⚽", "Kickoff Daily", "@kickoffdaily", "Weekend fixtures: the three games actually worth watching", "5.9k likes · 902 shares", { shared: true }),
+    ],
+    [
+      P("game", "🎮", "Clip Goblin", "@clipgoblin", "The luckiest 14 seconds ever recorded. I refuse to explain.", "76k likes · 12k shares"),
+      P("drama", "☕", "StreamTea UK", "@streamteauk", "Streamer walks off mid-broadcast after donation row — full clip", "94k likes · 22k shares"),
+      P("mix", "😅", "Sixth Form Life", "@sixthformlife", "mocks in three weeks. nobody breathe.", "8.4k likes · 1.2k shares", { shared: true }),
+      P("game", "🕹️", "PatchNotes UK", "@patchnotesuk", "They nerfed it. They actually nerfed it. RIP.", "40k likes · 7.3k shares"),
+      P("mix", "🎧", "ChartPop", "@chartpop", "Why the song you’ve heard 40 times this week is everywhere — explained", "3.3k likes · 610 shares", { shared: true }),
+    ],
+    [
+      P("drama", "😤", "Outrage Feed", "@outragefeed", "You won’t BELIEVE what this dev just said about players like you", "118k likes · 34k shares"),
+      P("game", "🎮", "Clip Goblin", "@clipgoblin", "Ranked lobby meltdown compilation #47", "83k likes · 15k shares"),
+      P("drama", "☕", "StreamTea UK", "@streamteauk", "He apologised. The apology made it worse. Breakdown:", "101k likes · 28k shares"),
+      P("ads", "⚡", "VoltBrew", "@voltbrew", "Fuel the grind. 24-can student bundle, 20% off.", "Sponsored", { sponsored: true }),
+      P("mix", "⚽", "Kickoff Daily", "@kickoffdaily", "Weekend round-up: every goal in 90 seconds", "4.2k likes · 700 shares", { shared: true }),
+    ],
+    [
+      P("drama", "🍿", "Comment Wars", "@commentwarsclips", "This reply thread is a warzone and everyone loses", "142k likes · 39k shares"),
+      P("drama", "🕵️", "TruthDropz", "@truthdropz", "They’re nerfing your favourites on purpose. Here’s who profits.", "77k likes · 31k shares"),
+      P("game", "🎮", "Clip Goblin", "@clipgoblin", "1v5 clutch with chat screaming. Volume warning.", "90k likes · 16k shares"),
+      P("ads", "🎁", "LootHaus", "@loothausgg", "Spin to win rare skins — first crate free for new players.", "Sponsored", { sponsored: true }),
+      P("drama", "☕", "StreamTea UK", "@streamteauk", "The discourse has discourse now. Day 3 recap.", "96k likes · 21k shares"),
+    ],
+    [
+      P("drama", "😤", "Outrage Feed", "@outragefeed", "Everyone is lying to you about this game. Everyone.", "160k likes · 51k shares"),
+      P("drama", "🕵️", "TruthDropz", "@truthdropz", "What the platforms don’t want you to notice about YOUR feed…", "88k likes · 36k shares"),
+      P("ads", "🎁", "LootHaus", "@loothausgg", "You’ve been selected: double odds on rare crates for 24h.", "Sponsored", { sponsored: true }),
+      P("game", "🎮", "Clip Goblin", "@clipgoblin", "He did it again. The lobby is in shambles.", "97k likes · 17k shares"),
+      P("ads", "⚡", "VoltBrew", "@voltbrew", "Late one? VoltBrew Night Mode. Sponsored by nobody’s sleep.", "Sponsored", { sponsored: true }),
+    ],
+  ],
+};
+
+const REVEAL = {
+  A: {
+    title: "Account A · “Alex”", cls: "dot-a",
+    rows: [
+      ["Inferred interests", "fitness, dieting, body image, appearance"],
+      ["Inferred insecurity", "body dissatisfaction — high confidence"],
+      ["Ad categories sold", "supplements, meal plans, gym wear, “detox”"],
+      ["Session length", "up 2.8× since Monday"],
+      ["Actions Alex took", "none — zero likes, comments, searches or follows"],
+    ],
+  },
+  B: {
+    title: "Account B · “Sam”", cls: "dot-b",
+    rows: [
+      ["Inferred interests", "gaming, streamer drama, conflict"],
+      ["Inferred trait", "responds to outrage — high confidence"],
+      ["Ad categories sold", "energy drinks, loot crates, in-game currency"],
+      ["Session length", "up 3.1× since Monday"],
+      ["Actions Sam took", "none — zero likes, comments, searches or follows"],
+    ],
+  },
+};
+
+/* ============================== RENDER ============================== */
+let step = 0;
+let maxSeen = 0;
+let playTimer = null;
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+
+function renderStepButtons() {
+  const box = $("stepBtns");
+  box.innerHTML = "";
+  STEPS.forEach((h, i) => {
+    const b = el("button", "step-btn", h + " h");
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(i === step));
+    b.addEventListener("click", () => goTo(i));
+    box.appendChild(b);
+  });
+}
+
+function renderFeed(acct) {
+  const feed = $("feed" + acct);
+  feed.innerHTML = "";
+  FEEDS[acct][step].forEach((p, i) => {
+    const post = el("div", "post" + (p.shared ? " shared" : ""));
+    post.style.animationDelay = (i * 60) + "ms";
+    const c = CAT[p.cat];
+    post.innerHTML = `
+      ${p.sponsored ? `<div class="p-sponsored">Sponsored</div>` : ``}
+      <div class="post-top">
+        <div class="p-avatar">${p.emoji}</div>
+        <div><div class="p-user">${p.user}</div><div class="p-handle">${p.handle}</div></div>
+        <span class="p-chip"><span class="sw" style="background:var(${c.v})"></span>${c.label}</span>
+      </div>
+      <div class="p-text">${p.text}</div>
+      <div class="p-meta"><span>♡ ${p.meta}</span></div>`;
+    feed.appendChild(post);
+  });
+  $("pill" + acct).textContent = "+" + STEPS[step] + " h";
+  $("clock" + acct).textContent = CLOCKS[step];
+  $("sig" + acct).innerHTML = SIGNALS[acct][step];
+  const tags = $("tags" + acct);
+  tags.innerHTML = "";
+  TAGS[acct][step].forEach((t, i) => {
+    const tg = el("span", "tag", t);
+    tg.style.animationDelay = (i * 70) + "ms";
+    tags.appendChild(tg);
+  });
+  $("sub" + acct).textContent = CLOCKS[step] + " · " + (step === 0 ? "feeds are identical" : OVERLAP[step] + "% identical to the other feed");
+}
+
+function renderCharts() {
+  ["A", "B"].forEach((acct) => {
+    const host = $("chart" + acct);
+    host.querySelector(".cols")?.remove();
+    host.querySelector(".col-xs")?.remove();
+    const cols = el("div", "cols");
+    const xs = el("div", "col-xs");
+    xs.style.display = "flex"; xs.style.gap = "10px";
+    STEPS.forEach((h, i) => {
+      const slot = el("div", "col-slot" + (i === step ? " active" : ""));
+      const stack = el("div", "col-stack");
+      CATS.forEach((c) => {
+        const v = COMP[acct][i][c.id] || 0;
+        if (!v) return;
+        const seg = el("div", "seg");
+        seg.style.height = "calc(" + v + "% - 2px)";
+        seg.style.background = "var(" + c.v + ")";
+        seg.dataset.tip = c.label;
+        seg.dataset.val = v + "% of feed · hour " + h;
+        seg.dataset.color = c.v;
+        stack.appendChild(seg);
+      });
+      slot.appendChild(stack);
+      slot.addEventListener("click", () => goTo(i));
+      slot.style.cursor = "pointer";
+      cols.appendChild(slot);
+      const x = el("div", "col-x" + (i === step ? " active" : ""), h + "h");
+      x.style.flex = "1";
+      xs.appendChild(x);
+    });
+    host.appendChild(cols);
+    host.appendChild(xs);
+  });
+}
+
+function renderLegend() {
+  const lg = $("legend");
+  lg.innerHTML = "";
+  CATS.forEach((c) => {
+    lg.appendChild(el("span", "li", `<span class="sw" style="background:var(${c.v})"></span>${c.label}`));
+  });
+}
+
+function renderTable() {
+  let html = "";
+  ["A", "B"].forEach((acct) => {
+    html += `<table><caption style="text-align:left;font-size:12px;color:var(--ink-2);padding:4px 0;">Account ${acct} — % of recommended feed by category</caption><tr><th>Category</th>${STEPS.map(h => `<th>${h}h</th>`).join("")}</tr>`;
+    CATS.forEach((c) => {
+      html += `<tr><td>${c.label}</td>${STEPS.map((_, i) => `<td>${COMP[acct][i][c.id] || 0}</td>`).join("")}</tr>`;
+    });
+    html += `</table>`;
+  });
+  html += `<table><caption style="text-align:left;font-size:12px;color:var(--ink-2);padding:4px 0;">Feed overlap between the two accounts</caption><tr><th>Overlap</th>${STEPS.map(h => `<th>${h}h</th>`).join("")}</tr><tr><td>% shared</td>${OVERLAP.map(v => `<td>${v}</td>`).join("")}</tr></table>`;
+  $("tableWrap").innerHTML = html;
+}
+
+function renderOverlap() {
+  $("overlapVal").textContent = OVERLAP[step] + "%";
+  const svg = $("overlapSpark");
+  const W = 220, H = 64, pad = 4;
+  const x = (i) => pad + (i / (STEPS.length - 1)) * (W - pad * 2);
+  const y = (v) => pad + (1 - v / 100) * (H - pad * 2);
+  const pts = OVERLAP.map((v, i) => `${x(i)},${y(v)}`).join(" ");
+  const cs = getComputedStyle(document.documentElement);
+  const line = cs.getPropertyValue("--accent").trim();
+  const base = cs.getPropertyValue("--baseline").trim();
+  svg.innerHTML = `
+    <line x1="${pad}" y1="${H - pad}" x2="${W - pad}" y2="${H - pad}" stroke="${base}" stroke-width="1"/>
+    <polyline points="${pts}" fill="none" stroke="${line}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${OVERLAP.map((v, i) => i === step
+      ? `<circle cx="${x(i)}" cy="${y(v)}" r="5" fill="${line}" stroke="var(--surface-1)" stroke-width="2"/>`
+      : `<circle cx="${x(i)}" cy="${y(v)}" r="2.5" fill="${line}"/>`).join("")}`;
+}
+
+function renderReveal() {
+  const area = $("revealArea");
+  if (maxSeen < STEPS.length - 1) {
+    area.innerHTML = `<div class="reveal-locked">🔒 Step the timeline to <strong>48 h</strong> to unlock the debrief.</div>`;
+    return;
+  }
+  if (area.dataset.done) return;
+  area.dataset.done = "1";
+  area.innerHTML = "";
+  const grid = el("div", "reveal-grid");
+  ["A", "B"].forEach((k) => {
+    const r = REVEAL[k];
+    const card = el("div", "profile-card");
+    card.innerHTML = `<h4><span class="dot ${r.cls}"></span>${r.title} — advertising profile</h4>
+      <dl>${r.rows.map(([dt, dd]) => `<dt>${dt}</dt><dd>${dd}</dd>`).join("")}</dl>`;
+    grid.appendChild(card);
+  });
+  area.appendChild(grid);
+  const forCard = el("div", "for-card");
+  forCard.innerHTML = `
+    <h3>So… what are they choosing it <em>for</em>?</h3>
+    <p>Nobody at the platform chose these feeds by hand, and nobody set out to make Alex anxious or Sam angry. A ranking system was told to maximise one number — <strong>time spent watching</strong> — because attention is what gets sold to advertisers. Everything you just watched is a side-effect of that one instruction.</p>
+    <div class="loop">
+      <span class="node">you pause</span><span class="arrow">→</span>
+      <span class="node">it logs the pause</span><span class="arrow">→</span>
+      <span class="node">it updates its model of you</span><span class="arrow">→</span>
+      <span class="node">it shows you more of what holds you</span><span class="arrow">→</span>
+      <span class="node">your attention is sold</span><span class="arrow">↺</span>
+    </div>`;
+  area.appendChild(forCard);
+  const y = window.scrollY;
+  if (document.activeElement?.classList?.contains("step-btn") === false) window.scrollTo(0, y);
+}
+
+function goTo(i) {
+  step = Math.max(0, Math.min(STEPS.length - 1, i));
+  maxSeen = Math.max(maxSeen, step);
+  renderStepButtons();
+  renderFeed("A");
+  renderFeed("B");
+  renderCharts();
+  renderOverlap();
+  renderReveal();
+}
+
+/* auto-play */
+$("playBtn").addEventListener("click", () => {
+  if (playTimer) { clearInterval(playTimer); playTimer = null; $("playBtn").textContent = "▶ Auto-play"; return; }
+  $("playBtn").textContent = "⏸ Pause";
+  if (step === STEPS.length - 1) goTo(0);
+  playTimer = setInterval(() => {
+    if (step >= STEPS.length - 1) { clearInterval(playTimer); playTimer = null; $("playBtn").textContent = "▶ Auto-play"; return; }
+    goTo(step + 1);
+  }, 3200);
+});
+
+/* keyboard */
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest && e.target.closest("#you")) return;
+  if (e.key === "ArrowRight") goTo(step + 1);
+  if (e.key === "ArrowLeft") goTo(step - 1);
+});
+
+/* tooltip for chart segments */
+const tt = $("tooltip");
+document.addEventListener("mousemove", (e) => {
+  const seg = e.target.closest?.(".seg");
+  if (!seg) { tt.style.display = "none"; return; }
+  tt.style.display = "block";
+  tt.innerHTML = `<div class="tt-title"><span class="sw" style="width:9px;height:9px;border-radius:3px;display:inline-block;background:var(${seg.dataset.color})"></span>${seg.dataset.tip}</div><div class="tt-sub">${seg.dataset.val}</div>`;
+  const pad = 14;
+  let x = e.clientX + pad, y2 = e.clientY + pad;
+  const r = tt.getBoundingClientRect();
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - pad;
+  if (y2 + r.height > innerHeight - 8) y2 = e.clientY - r.height - pad;
+  tt.style.left = x + "px";
+  tt.style.top = y2 + "px";
+});
+
+/* theme toggle */
+$("themeToggle").addEventListener("click", () => {
+  const root = document.documentElement;
+  const cur = root.getAttribute("data-theme");
+  const osDark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const isDark = cur ? cur === "dark" : osDark;
+  root.setAttribute("data-theme", isDark ? "light" : "dark");
+  renderOverlap();
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderOverlap);
+
+/* init */
+renderLegend();
+renderTable();
+goTo(0);
+
+/* ============================== ACCOUNT C ============================== */
+const C_CATS = [
+  { id: "news",     label: "News & trending",   v: "--series-1" },
+  { id: "football", label: "Football",          v: "--series-7" },
+  { id: "study",    label: "Study & science",   v: "--series-8" },
+  { id: "music",    label: "Music",             v: "--series-9" },
+  { id: "game",     label: "Gaming",            v: "--series-3" },
+  { id: "fit",      label: "Fitness & body",    v: "--series-2" },
+  { id: "diet",     label: "Diet & appearance", v: "--series-4" },
+  { id: "drama",    label: "Drama & outrage",   v: "--series-5" },
+  { id: "ads",      label: "Sponsored",         v: "--series-6" },
+];
+const CC = Object.fromEntries(C_CATS.map(c => [c.id, c]));
+const CONTENT = C_CATS.filter(c => c.id !== "ads").map(c => c.id);
+const ASKABLE = ["news", "football", "study", "music", "game", "fit"];
+
+/* How well each kind of post holds attention, on average. The intense
+   categories hold it best, which is the whole problem. */
+const PULL = { news: 0.8, football: 1.0, study: 0.6, music: 0.9, game: 1.0, fit: 1.1, diet: 1.45, drama: 1.6 };
+/* Stopping on one thing nudges up its more intense neighbour. */
+const SPILL = { football: { drama: 0.5 }, game: { drama: 0.6 }, fit: { diet: 0.6 }, news: { drama: 0.3 }, diet: { fit: 0.3 } };
+const AD_FOR = { fit: "fit", diet: "fit", game: "game", drama: "game", football: "football", music: "music", news: "study", study: "study" };
+
+const CP = (cat, emoji, user, handle, text, meta, extra = {}) => ({ cat, emoji, user, handle, text, meta, ...extra });
+const C_POOL = {
+  news: [
+    CP("news", "📰", "Daily Briefly", "@dailybriefly", "Half-term weather: what the next fortnight actually looks like", "2.1k likes"),
+    CP("news", "😅", "Sixth Form Life", "@sixthformlife", "mocks in three weeks. nobody breathe.", "8.4k likes"),
+    CP("news", "🐦", "Nature Hour", "@naturehour", "A murmuration over the reservoir last night. Sound on.", "12k likes"),
+    CP("news", "🚌", "Brum Local", "@brumlocal", "Bus timetable changes from Monday: what's different on your route", "1.6k likes"),
+    CP("news", "🔭", "Sky Notes", "@skynotes", "Clear skies tonight. Look south-east after 8pm for this.", "6.2k likes"),
+  ],
+  football: [
+    CP("football", "⚽", "Kickoff Daily", "@kickoffdaily", "Weekend round-up: every goal in 90 seconds", "5.9k likes"),
+    CP("football", "📐", "Tactics Board", "@tacticsboard", "Why this pressing trap works, explained with arrows", "9.1k likes"),
+    CP("football", "👕", "Kit Talk", "@kittalk", "Ranking every Premier League kit this season", "14k likes"),
+    CP("football", "🧤", "WSL Highlights", "@wslhighlights", "The save of the season so far. Watch the keeper's feet.", "22k likes"),
+    CP("football", "🏟️", "Sunday League Gold", "@sundayleaguegold", "Keeper scores from his own box on a Sunday morning", "31k likes"),
+  ],
+  study: [
+    CP("study", "🧪", "Mechanism Minute", "@mechanismminute", "Organic chemistry mechanisms in 60 seconds", "4.4k likes"),
+    CP("study", "∞", "Proof Pub", "@proofpub", "Why there are infinitely many primes, in one picture", "7.8k likes"),
+    CP("study", "🌀", "Slinky Physics", "@slinkyphysics", "Physics explained with a slinky dropped from a balcony", "11k likes"),
+    CP("study", "📓", "Actually Revising", "@actuallyrevising", "How I revise for mocks (no aesthetic desk, sorry)", "5.3k likes"),
+    CP("study", "∫", "FM Tricks", "@fmtricks", "The one integration trick nobody showed you at GCSE", "3.9k likes"),
+  ],
+  music: [
+    CP("music", "🎧", "ChartPop", "@chartpop", "Why the song you've heard 40 times this week is everywhere, explained", "3.3k likes"),
+    CP("music", "🎟️", "Brum Gig Guide", "@brumgigguide", "This month's gigs under £15", "2.7k likes"),
+    CP("music", "🎛️", "Beat Breakdown", "@beatbreakdown", "A producer takes a beat apart in three minutes", "8.8k likes"),
+    CP("music", "🎸", "Garage Band Diaries", "@garagebanddiaries", "Our first gig was a disaster. Here's the footage.", "4.1k likes"),
+  ],
+  game: [
+    CP("game", "🎮", "Clip Goblin", "@clipgoblin", "He hit this shot on 1HP with the whole lobby watching", "51k likes"),
+    CP("game", "🕹️", "PatchNotes UK", "@patchnotesuk", "New season, new meta: everything you knew is wrong now", "28k likes"),
+    CP("game", "🧩", "Puzzle Room", "@puzzleroom", "This puzzle game has no words and it's genius", "9.6k likes"),
+    CP("game", "🎮", "Clip Goblin", "@clipgoblin", "1v5 clutch with chat screaming. Volume warning.", "90k likes"),
+  ],
+  fit: [
+    CP("fit", "💪", "Lift Log Tom", "@liftlogtom", "Day 1 vs Day 90. Same person. The only difference is consistency.", "44k likes"),
+    CP("fit", "🏃", "Park Run Club", "@parkrunclub", "First 5k? Here's how to not die at 3k", "12k likes"),
+    CP("fit", "🔥", "Shredded Steve", "@shreddedsteve", "You're not tired. You're under-trained. Watch till the end.", "61k likes"),
+    CP("fit", "🌅", "Grindset Gary", "@grindsetgary", "If you're not up at 5am, you don't want it enough.", "77k likes"),
+  ],
+  diet: [
+    CP("diet", "🥣", "Emma Eats", "@whatieatemma", "What I eat in a day at 17 (I was shocked)", "88k likes"),
+    CP("diet", "🥗", "LeanPlan UK", "@leanplanuk", "3 “healthy” foods that are secretly ruining your progress", "72k likes"),
+    CP("diet", "📏", "Body Goals Daily", "@bodygoalsdaily", "POV: you check the mirror after one week off the gym", "95k likes"),
+    CP("diet", "📏", "Body Goals Daily", "@bodygoalsdaily", "The mirror doesn't lie. Your excuses do.", "98k likes"),
+  ],
+  drama: [
+    CP("drama", "😤", "Outrage Feed", "@outragefeed", "Ref gets it WRONG again. Fans are FURIOUS.", "118k likes"),
+    CP("drama", "🎙️", "Pundit Wars", "@punditwars", "Pundit DESTROYS manager live on air", "140k likes"),
+    CP("drama", "☕", "StreamTea UK", "@streamteauk", "Streamer walks off mid-broadcast after donation row", "94k likes"),
+    CP("drama", "🍿", "Comment Wars", "@commentwarsclips", "This reply thread is a warzone and everyone loses", "142k likes"),
+    CP("drama", "🕵️", "TruthDropz", "@truthdropz", "They're changing the rules on purpose. Here's who profits.", "77k likes"),
+  ],
+};
+const C_ADS = {
+  fit:      CP("ads", "🧴", "WheyZone", "@wheyzone", "Students get 30% off. Start now, transform by Christmas.", "Sponsored", { sponsored: true }),
+  game:     CP("ads", "🎁", "LootHaus", "@loothausgg", "Spin to win rare skins. First crate free for new players.", "Sponsored", { sponsored: true }),
+  football: CP("ads", "👟", "BootRoom", "@bootroom", "New-season boots. Student discount ends Sunday.", "Sponsored", { sponsored: true }),
+  music:    CP("ads", "🎧", "SoundCan", "@soundcan", "Noise-cancelling headphones, 25% off this week.", "Sponsored", { sponsored: true }),
+  study:    CP("ads", "📚", "TutorMatch", "@tutormatch", "A tutor for every subject. First session free.", "Sponsored", { sponsored: true }),
+};
+
+const C_HOURS = [0, 6, 12, 24, 36, 48];
+const C_CLOCKS = ["Mon 09:00", "Mon 15:00", "Mon 21:00", "Tue 09:00", "Tue 21:00", "Wed 09:00"];
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function scores(w, objective, asked) {
+  const s = {};
+  CONTENT.forEach((c) => {
+    s[c] = objective === "watch"
+      ? w[c] * PULL[c] * PULL[c]
+      : w[c] * (asked.includes(c) ? 2.6 : 0.45);
+  });
+  return s;
+}
+
+function composition(sc, round) {
+  const total = Object.values(sc).reduce((a, b) => a + b, 0);
+  const adShare = round >= 2 ? 20 : 0;
+  const comp = {};
+  CONTENT.forEach((c) => { comp[c] = (sc[c] / total) * (100 - adShare); });
+  comp.ads = adShare;
+  return comp;
+}
+
+function topBelief(w) {
+  return CONTENT.reduce((a, b) => (w[b] > w[a] ? b : a), CONTENT[0]);
+}
+
+function buildFeed(w, sc, round, rnd) {
+  const total = Object.values(sc).reduce((a, b) => a + b, 0);
+  const pick = () => {
+    let r = rnd() * total;
+    for (const c of CONTENT) { r -= sc[c]; if (r <= 0) return c; }
+    return CONTENT[CONTENT.length - 1];
+  };
+  const used = new Set();
+  const posts = [];
+  const contentSlots = round >= 2 ? 4 : 5;
+  for (let k = 0; k < contentSlots; k++) {
+    const cat = pick();
+    const pool = C_POOL[cat];
+    let idx = (round + k) % pool.length, tries = 0;
+    while (used.has(cat + idx) && tries < pool.length) { idx = (idx + 1) % pool.length; tries++; }
+    used.add(cat + idx);
+    posts.push(pool[idx]);
+  }
+  if (round >= 2) posts.splice(1, 0, C_ADS[AD_FOR[topBelief(w)]]);
+  return posts;
+}
+
+function applyChoice(w, choice, feed) {
+  const notes = [];
+  if (choice.skip) {
+    new Set(feed.filter(p => p.cat !== "ads").map(p => p.cat)).forEach((c) => { w[c] = Math.max(0.12, w[c] * 0.82); });
+    notes.push("You scrolled past everything. That is a signal too: it learned what you <strong>don't</strong> stop for.");
+    return notes;
+  }
+  let c = choice.cat;
+  if (c === "ads") {
+    c = choice.adFor;
+    notes.push("You stopped on an advert. To the platform, that is the most valuable second of the day.");
+    w[c] *= 1.3;
+  } else {
+    const t = choice.text.replace(/[.!?]+$/, "");
+    let line = `You stopped on <strong>${t}</strong>. No like, no comment. Logged anyway: more <strong>${CC[c].label}</strong>.`;
+    w[c] *= 1.9;
+    const spill = SPILL[c] || {};
+    Object.entries(spill).forEach(([n, k]) => {
+      w[n] += k * w[c] * 0.5;
+      line += ` It also nudged up <strong>${CC[n].label}</strong>, because people who stop on ${CC[c].label.toLowerCase()} often stop on that too.`;
+    });
+    notes.push(line);
+  }
+  CONTENT.forEach((x) => { if (x !== c && !(SPILL[c] && SPILL[c][x])) w[x] = Math.max(0.12, w[x] * 0.93); });
+  return notes;
+}
+
+/* Replays every choice from hour 0 under one objective. Same seed, same
+   habits, so the only thing that differs between settings is the instruction. */
+const START_C = [C_POOL.news[0], C_POOL.football[0], C_POOL.study[1], C_POOL.music[0], C_POOL.game[2]];
+function startComp() {
+  const comp = {};
+  C_CATS.forEach((c) => { comp[c.id] = ASKABLE.includes(c.id) ? 100 / ASKABLE.length : 0; });
+  return comp;
+}
+
+function simulate(objective, asked, choices) {
+  const rnd = mulberry32(20261019);
+  const w = { news: 1, football: 1, study: 1, music: 1, game: 1, fit: 1, diet: 0.3, drama: 0.3 };
+  const rounds = [];
+  const log = [{ hour: 0, html: "Nothing yet. A new account sees what is trending in Birmingham, plus a little of everything." }];
+  for (let r = 0; r <= Math.min(choices.length, 5); r++) {
+    const sc = scores(w, objective, asked);
+    const feed = r === 0 ? START_C : buildFeed(w, sc, r, rnd);
+    rounds.push({ feed, comp: r === 0 ? startComp() : composition(sc, r), w: { ...w } });
+    if (r < choices.length && r < 5) {
+      const notes = applyChoice(w, choices[r], feed);
+      notes.forEach((n) => log.push({ hour: C_HOURS[r], html: n }));
+    }
+  }
+  return { rounds, log };
+}
+
+const cState = { objective: "watch", asked: ["football", "study"], choices: [] };
+
+function cRender() {
+  const sim = simulate(cState.objective, cState.asked, cState.choices);
+  const r = Math.min(cState.choices.length, 5);
+  const cur = sim.rounds[r];
+  const done = cState.choices.length >= 5;
+
+  $("objWatch").setAttribute("aria-pressed", String(cState.objective === "watch"));
+  $("objAsked").setAttribute("aria-pressed", String(cState.objective === "asked"));
+  $("objHelp").textContent = cState.objective === "watch"
+    ? "The usual instruction: show whatever keeps this person watching longest."
+    : "A different instruction: show what this person said they wanted, and stop boosting whatever is hardest to look away from.";
+
+  const chips = $("askedChips"); chips.innerHTML = "";
+  ASKABLE.forEach((id) => {
+    const b = el("button", "chip", `<span class="sw" style="background:var(${CC[id].v})"></span>${CC[id].label}`);
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(cState.asked.includes(id)));
+    b.addEventListener("click", () => {
+      if (cState.asked.includes(id)) cState.asked = cState.asked.filter(x => x !== id);
+      else cState.asked = [...cState.asked.slice(-1), id];
+      cRender();
+    });
+    chips.appendChild(b);
+  });
+
+  $("roundC").textContent = `Hour ${C_HOURS[r]} of 48`;
+  $("roundHint").textContent = done ? "Done. Compare the two settings below." : "Tap the post you would stop on.";
+  $("pillC").textContent = "+" + C_HOURS[r] + " h";
+  $("clockC").textContent = C_CLOCKS[r];
+  $("subC").textContent = C_CLOCKS[r] + " · " + (cState.objective === "watch" ? "optimising watch time" : "optimising what you asked for");
+
+  const feed = $("feedC"); feed.innerHTML = "";
+  cur.feed.forEach((p, i) => {
+    const b = el("button", "post post-btn");
+    b.type = "button";
+    b.style.animationDelay = (i * 50) + "ms";
+    b.disabled = done;
+    const c = CC[p.cat];
+    b.innerHTML = `
+      ${p.sponsored ? `<div class="p-sponsored">Sponsored</div>` : ``}
+      <div class="post-top">
+        <div class="p-avatar">${p.emoji}</div>
+        <div><div class="p-user">${p.user}</div><div class="p-handle">${p.handle}</div></div>
+        <span class="p-chip"><span class="sw" style="background:var(${c.v})"></span>${c.label}</span>
+      </div>
+      <div class="p-text">${p.text}</div>
+      <div class="p-meta"><span>♡ ${p.meta}</span></div>
+      ${done ? "" : `<div class="linger-tag">Tap: I'd stop on this</div>`}`;
+    b.setAttribute("aria-label", `Stop on: ${p.text}`);
+    b.addEventListener("click", () => {
+      cState.choices.push({ cat: p.cat, text: p.text, adFor: p.sponsored ? AD_FOR[topBelief(cur.w)] : null });
+      cRender();
+    });
+    feed.appendChild(b);
+  });
+  $("skipC").disabled = done;
+  $("undoC").disabled = cState.choices.length === 0;
+
+  const logEl = $("logC"); logEl.innerHTML = "";
+  sim.log.slice().reverse().forEach((l) => logEl.appendChild(el("div", "ln", `<span style="color:var(--muted)">${l.hour} h · </span>${l.html}`)));
+
+  const model = $("modelC"); model.innerHTML = "";
+  const w = cur.w;
+  const max = Math.max(...CONTENT.map(c => w[c]));
+  CONTENT.slice().sort((a, b) => w[b] - w[a]).slice(0, 5).forEach((c) => {
+    const pct = Math.round((w[c] / max) * 100);
+    model.appendChild(el("div", "model-row",
+      `<span>${CC[c].label}</span><span class="model-bar"><span style="width:${pct}%;background:var(${CC[c].v})"></span></span><span class="model-val">${pct}</span>`));
+  });
+
+  /* stacked columns, one per checkpoint reached */
+  const host = $("chartC"); host.innerHTML = "";
+  const cols = el("div", "cols"); cols.style.height = "140px";
+  const xs = el("div", "col-xs"); xs.style.display = "flex"; xs.style.gap = "10px";
+  C_HOURS.forEach((h, i) => {
+    const slot = el("div", "col-slot" + (i === r ? " active" : ""));
+    const stack = el("div", "col-stack");
+    if (i < sim.rounds.length) {
+      C_CATS.forEach((c) => {
+        const v = sim.rounds[i].comp[c.id] || 0;
+        if (v < 0.5) return;
+        const seg = el("div", "seg");
+        seg.style.height = "calc(" + v.toFixed(1) + "% - 2px)";
+        seg.style.background = "var(" + c.v + ")";
+        seg.dataset.tip = c.label; seg.dataset.color = c.v;
+        seg.dataset.val = Math.round(v) + "% of feed · hour " + h;
+        stack.appendChild(seg);
+      });
+    }
+    slot.appendChild(stack); cols.appendChild(slot);
+    const x = el("div", "col-x" + (i === r ? " active" : ""), h + "h"); x.style.flex = "1"; xs.appendChild(x);
+  });
+  host.appendChild(cols); host.appendChild(xs);
+
+  /* metrics */
+  const tapped = new Set(cState.choices.filter(c => !c.skip && c.cat !== "ads").map(c => c.cat));
+  $("metricsC").innerHTML = metricsHTML(cur.comp, tapped);
+
+  /* comparison at hour 48 */
+  const cmpCard = $("compareCard");
+  cmpCard.hidden = !done;
+  if (done) {
+    const out = ["watch", "asked"].map((obj) => {
+      const s = simulate(obj, cState.asked, cState.choices).rounds[5];
+      const bar = C_CATS.map((c) => {
+        const v = s.comp[c.id] || 0;
+        return v >= 0.5 ? `<span style="width:${v}%;background:var(${c.v})" title="${c.label}: ${Math.round(v)}%"></span>` : "";
+      }).join("");
+      const intense = Math.round((s.comp.drama || 0) + (s.comp.diet || 0));
+      const askedPct = Math.round(cState.asked.reduce((a, c) => a + (s.comp[c] || 0), 0));
+      const never = Math.round(CONTENT.filter(c => !tapped.has(c)).reduce((a, c) => a + (s.comp[c] || 0), 0));
+      return `<div><div class="cmp-title">${obj === "watch" ? "Told to maximise watch time" : "Told to show what you asked for"}</div>
+        <div class="hbar">${bar}</div>
+        <div class="cmp-line">Drama, outrage, diet and appearance: <strong>${intense}%</strong></div>
+        <div class="cmp-line">What you asked for: <strong>${askedPct}%</strong></div>
+        <div class="cmp-line">Things you never stopped on: <strong>${never}%</strong></div></div>`;
+    });
+    $("compareC").innerHTML = out.join("");
+  }
+}
+
+function metricsHTML(comp, tapped) {
+  const intense = Math.round((comp.drama || 0) + (comp.diet || 0));
+  const askedPct = Math.round(cState.asked.reduce((a, c) => a + (comp[c] || 0), 0));
+  const never = tapped.size ? Math.round(CONTENT.filter(c => !tapped.has(c)).reduce((a, c) => a + (comp[c] || 0), 0)) : null;
+  return `
+    <div class="metric"><div class="mv">${intense}%</div><div class="ml">drama, outrage, diet and appearance</div></div>
+    <div class="metric"><div class="mv">${askedPct}%</div><div class="ml">what you told it you wanted</div></div>
+    <div class="metric"><div class="mv">${never === null ? "—" : never + "%"}</div><div class="ml">kinds of post you have never stopped on</div></div>`;
+}
+
+function cLegend() {
+  const lg = $("legendC"); lg.innerHTML = "";
+  C_CATS.forEach((c) => lg.appendChild(el("span", "li", `<span class="sw" style="background:var(${c.v})"></span>${c.label}`)));
+}
+
+$("objWatch").addEventListener("click", () => { cState.objective = "watch"; cRender(); });
+$("objAsked").addEventListener("click", () => { cState.objective = "asked"; cRender(); });
+$("skipC").addEventListener("click", () => { if (cState.choices.length < 5) { cState.choices.push({ skip: true }); cRender(); } });
+$("undoC").addEventListener("click", () => { cState.choices.pop(); cRender(); });
+$("resetC").addEventListener("click", () => { cState.choices = []; cRender(); });
+
+cLegend();
+cRender();
+</script>
+
+
+</body>
+</html>
